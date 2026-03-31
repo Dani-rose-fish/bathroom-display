@@ -375,6 +375,127 @@
       text-align: center;
     }
 
+    /* ── AI CHAT ── */
+
+    .chat-card {
+      flex: 0 0 auto;
+      display: flex;
+      flex-direction: column;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .chat-tabs {
+      display: flex;
+      gap: 5px;
+      padding: 10px 12px 8px;
+      flex-shrink: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .chat-tab {
+      flex: 1;
+      padding: 6px 4px;
+      border-radius: 9px;
+      border: none;
+      font-size: 11px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .chat-tab.active { background: var(--accent); color: #fff; }
+
+    .chat-messages {
+      min-height: 64px;
+      max-height: 110px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .chat-placeholder {
+      color: var(--muted);
+      font-size: 12px;
+      font-style: italic;
+      text-align: center;
+      align-self: center;
+      margin: auto 0;
+    }
+
+    .chat-bubble {
+      padding: 7px 10px;
+      border-radius: 11px;
+      font-size: 12px;
+      line-height: 1.45;
+      max-width: 92%;
+      word-break: break-word;
+    }
+
+    .chat-bubble.user {
+      background: var(--accent);
+      color: #fff;
+      align-self: flex-end;
+      border-bottom-right-radius: 3px;
+    }
+
+    .chat-bubble.assistant {
+      background: rgba(127,163,190,0.15);
+      color: var(--text);
+      align-self: flex-start;
+      border-bottom-left-radius: 3px;
+    }
+
+    .chat-bubble.loading { color: var(--muted); font-style: italic; }
+
+    .chat-input-row {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px 12px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.65);
+      color: var(--text);
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .chat-input:focus { border-color: var(--accent); }
+
+    .chat-send {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+
+    .chat-send:disabled { opacity: 0.35; cursor: not-allowed; }
+
     /* ── SETTINGS ── */
 
     .settings-trigger {
@@ -594,6 +715,22 @@
           </div>
         </div>
 
+        <!-- AI Chat -->
+        <div class="card chat-card">
+          <div class="chat-tabs">
+            <button class="chat-tab active" data-model="claude">Claude</button>
+            <button class="chat-tab" data-model="chatgpt">ChatGPT</button>
+          </div>
+          <div class="chat-messages" id="chat-messages">
+            <div class="chat-placeholder" id="chat-placeholder">Add API keys in ⚙ to chat</div>
+          </div>
+          <div class="chat-input-row">
+            <input class="chat-input" id="chat-input" type="text"
+                   placeholder="Ask anything…" autocomplete="off">
+            <button class="chat-send" id="chat-send">↑</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -640,6 +777,22 @@
         placeholder="Paste image URLs here, one per line.&#10;&#10;Google Photos: open a photo → share → copy link, then change the end to =w1200"></textarea>
       <div style="font-size:10px;color:var(--muted);line-height:1.4;margin-top:2px;">
         Replaces the demo photos. Saved to this device.
+      </div>
+    </div>
+
+    <div class="s-divider"></div>
+
+    <!-- AI API Keys -->
+    <div class="s-section">
+      <label class="s-label" for="claude-key-input">Claude API Key</label>
+      <input class="s-input" type="password" id="claude-key-input" placeholder="sk-ant-…">
+    </div>
+    <div class="s-section">
+      <label class="s-label" for="openai-key-input">OpenAI API Key</label>
+      <input class="s-input" type="password" id="openai-key-input" placeholder="sk-…">
+      <div style="font-size:10px;color:var(--muted);line-height:1.4;">
+        Keys stored on this device only. Get them at
+        <strong>console.anthropic.com</strong> and <strong>platform.openai.com</strong>.
       </div>
     </div>
 
@@ -984,12 +1137,22 @@
   }
 
   // Restore saved state
+  const CLAUDE_KEY = 'claude-api-key';
+  const OPENAI_KEY = 'openai-api-key';
+
   const savedBg        = localStorage.getItem(BG_KEY);
   const savedKey       = localStorage.getItem(AW_KEY);
   const savedPhotoUrls = localStorage.getItem(PHOTO_URLS_KEY);
+  const savedClaudeKey = localStorage.getItem(CLAUDE_KEY);
+  const savedOpenaiKey = localStorage.getItem(OPENAI_KEY);
   if (savedBg)        { applyBg(savedBg); document.getElementById('bg-url-input').value = savedBg.startsWith('data:') ? '' : savedBg; }
   if (savedKey)       { document.getElementById('aw-key-input').value = savedKey; }
   if (savedPhotoUrls) { document.getElementById('photo-urls-input').value = savedPhotoUrls; }
+  if (savedClaudeKey) { document.getElementById('claude-key-input').value = savedClaudeKey; }
+  if (savedOpenaiKey) { document.getElementById('openai-key-input').value = savedOpenaiKey; }
+  if (savedClaudeKey || savedOpenaiKey) {
+    document.getElementById('chat-placeholder').textContent = 'Ask me anything…';
+  }
 
   // Settings panel toggle
   const settingsBtn   = document.getElementById('settings-btn');
@@ -1029,6 +1192,13 @@
     const url = document.getElementById('bg-url-input').value.trim();
     if (url) { localStorage.setItem(BG_KEY, url); applyBg(url); }
 
+    // AI API keys
+    const ck = document.getElementById('claude-key-input').value.trim();
+    const ok = document.getElementById('openai-key-input').value.trim();
+    if (ck) { localStorage.setItem(CLAUDE_KEY, ck); } else { localStorage.removeItem(CLAUDE_KEY); }
+    if (ok) { localStorage.setItem(OPENAI_KEY, ok); } else { localStorage.removeItem(OPENAI_KEY); }
+    if (ck || ok) document.getElementById('chat-placeholder').textContent = 'Ask me anything…';
+
     // Custom photo URLs
     const photoInput = document.getElementById('photo-urls-input').value.trim();
     if (photoInput) {
@@ -1054,6 +1224,125 @@
     document.getElementById('bg-file').value = '';
     applyBg(null);
     settingsPanel.classList.remove('open');
+  });
+
+  // ── AI CHAT ──────────────────────────────────────────────────
+  let activeModel  = 'claude';
+  const chatHistory = { claude: [], chatgpt: [] };
+
+  document.querySelectorAll('.chat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.chat-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeModel = tab.dataset.model;
+      renderChat();
+    });
+  });
+
+  function renderChat() {
+    const box  = document.getElementById('chat-messages');
+    const hist = chatHistory[activeModel];
+    if (!hist.length) {
+      const hasKey = activeModel === 'claude'
+        ? localStorage.getItem(CLAUDE_KEY)
+        : localStorage.getItem(OPENAI_KEY);
+      box.innerHTML = `<div class="chat-placeholder">${hasKey ? 'Ask me anything…' : 'Add API key in ⚙ to chat'}</div>`;
+      return;
+    }
+    box.innerHTML = hist.map(m =>
+      `<div class="chat-bubble ${m.role === 'user' ? 'user' : 'assistant'}">${m.content}</div>`
+    ).join('');
+    box.scrollTop = box.scrollHeight;
+  }
+
+  async function sendChat() {
+    const input   = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('chat-send');
+    const text    = input.value.trim();
+    if (!text) return;
+
+    const claudeKey = localStorage.getItem(CLAUDE_KEY);
+    const openaiKey = localStorage.getItem(OPENAI_KEY);
+
+    if (activeModel === 'claude' && !claudeKey) {
+      document.getElementById('chat-placeholder').textContent = 'Add Claude API key in ⚙ Settings';
+      return;
+    }
+    if (activeModel === 'chatgpt' && !openaiKey) {
+      document.getElementById('chat-placeholder').textContent = 'Add OpenAI API key in ⚙ Settings';
+      return;
+    }
+
+    chatHistory[activeModel].push({ role: 'user', content: text });
+    input.value  = '';
+    sendBtn.disabled = true;
+    renderChat();
+
+    // Loading indicator
+    const box = document.getElementById('chat-messages');
+    const dot = document.createElement('div');
+    dot.className = 'chat-bubble loading';
+    dot.textContent = '…';
+    box.appendChild(dot);
+    box.scrollTop = box.scrollHeight;
+
+    try {
+      let reply = '';
+
+      if (activeModel === 'claude') {
+        const r = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': claudeKey,
+            'anthropic-version': '2023-06-01',
+            'anthropic-dangerous-direct-browser-access': 'true',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 512,
+            system: 'You are a helpful assistant. Keep responses concise.',
+            messages: chatHistory[activeModel].map(m => ({ role: m.role, content: m.content })),
+          }),
+        });
+        const d = await r.json();
+        reply = d.content?.[0]?.text ?? `Error: ${d.error?.message ?? 'unknown'}`;
+      } else {
+        const r = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${openaiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o-mini',
+            max_tokens: 512,
+            messages: [
+              { role: 'system', content: 'You are a helpful assistant. Keep responses concise.' },
+              ...chatHistory[activeModel].map(m => ({ role: m.role, content: m.content })),
+            ],
+          }),
+        });
+        const d = await r.json();
+        reply = d.choices?.[0]?.message?.content ?? `Error: ${d.error?.message ?? 'unknown'}`;
+      }
+
+      chatHistory[activeModel].push({ role: 'assistant', content: reply });
+      // Keep last 6 messages (3 exchanges)
+      if (chatHistory[activeModel].length > 6)
+        chatHistory[activeModel] = chatHistory[activeModel].slice(-6);
+
+    } catch(e) {
+      chatHistory[activeModel].push({ role: 'assistant', content: `⚠️ ${e.message}` });
+    }
+
+    sendBtn.disabled = false;
+    renderChat();
+  }
+
+  document.getElementById('chat-send').addEventListener('click', sendChat);
+  document.getElementById('chat-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
   });
   </script>
 </body>
