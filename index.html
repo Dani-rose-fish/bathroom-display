@@ -89,7 +89,10 @@
     }
 
     .header-location {
-      text-align: right;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
       font-size: 12px;
       font-weight: 400;
       letter-spacing: 0.04em;
@@ -499,10 +502,9 @@
     /* ── SETTINGS ── */
 
     .settings-trigger {
-      position: fixed;
-      bottom: 14px;
-      right: 14px;
-      width: 32px; height: 32px;
+      position: relative;
+      flex-shrink: 0;
+      width: 28px; height: 28px;
       border-radius: 50%;
       background: rgba(255,255,255,0.35);
       backdrop-filter: var(--blur);
@@ -524,7 +526,7 @@
 
     .settings-panel {
       position: fixed;
-      bottom: 54px;
+      top: 54px;
       right: 14px;
       width: 300px;
       background: rgba(238,242,247,0.97);
@@ -634,7 +636,10 @@
     <header class="header">
       <div class="header-date" id="date-display">—</div>
       <div class="header-clock" id="clock-display">—</div>
-      <div class="header-location">Brooklyn, NY</div>
+      <div class="header-location">
+        <span>Brooklyn, NY</span>
+        <button class="settings-trigger" id="settings-btn" aria-label="Settings">⚙</button>
+      </div>
     </header>
 
     <!-- MAIN GRID -->
@@ -734,9 +739,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Settings trigger -->
-  <button class="settings-trigger" id="settings-btn" aria-label="Settings">⚙</button>
 
   <!-- Settings panel -->
   <div class="settings-panel" id="settings-panel">
