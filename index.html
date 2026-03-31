@@ -127,8 +127,7 @@
     /* ── SPOTIFY ── */
 
     .spotify-wrap {
-      flex: 1;
-      min-height: 0;
+      flex: 0 0 310px;   /* fixed height — gives podcasts the remaining space */
       display: flex;
       flex-direction: column;
       border-radius: var(--radius);
@@ -164,7 +163,7 @@
       display: flex;
       flex-direction: column;
       padding: 0;
-      overflow: hidden;
+      overflow: clip;   /* visual clip without killing child scroll on iOS */
     }
 
     .pod-tabs {
@@ -198,12 +197,14 @@
       color: #fff;
     }
 
+    /* Shared panel container — Spotify keeps absolute-fill approach */
     .pod-panels {
       flex: 1;
       min-height: 0;
       position: relative;
     }
 
+    /* Spotify players: fill container via absolute positioning */
     .pod-player {
       position: absolute;
       inset: 0;
@@ -219,6 +220,27 @@
     .pod-player.active {
       opacity: 1;
       pointer-events: auto;
+    }
+
+    /* Podcast players: scrollable block — fixes iOS touch-scroll inside iframe */
+    .podcasts-card .pod-panels {
+      position: static;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .podcast-player {
+      position: static;
+      display: none;
+      width: 100%;
+      height: 700px;   /* tall enough to show artwork + full episode list */
+      opacity: 1;
+      pointer-events: auto;
+      transition: none;
+    }
+
+    .podcast-player.active {
+      display: block;
     }
 
     /* ── PHOTOS ── */
@@ -530,17 +552,14 @@
             <button class="pod-tab"        data-idx="2">70 Muppets</button>
           </div>
           <div class="pod-panels" id="podcast-panels">
-            <iframe class="pod-player active"
+            <iframe class="pod-player podcast-player active"
               src="https://embed.podcasts.apple.com/us/podcast/insight-with-chris-van-vliet/id1468939064?theme=light"
-              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
               allow="autoplay *; encrypted-media *; clipboard-write" loading="lazy"></iframe>
-            <iframe class="pod-player"
+            <iframe class="pod-player podcast-player"
               src="https://embed.podcasts.apple.com/us/podcast/movin-right-along-a-muppet-movie-podcast/id1318553877?theme=light"
-              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
               allow="autoplay *; encrypted-media *; clipboard-write" loading="lazy"></iframe>
-            <iframe class="pod-player"
+            <iframe class="pod-player podcast-player"
               src="https://embed.podcasts.apple.com/us/podcast/70-years-70-muppets/id1763852606?theme=light"
-              sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
               allow="autoplay *; encrypted-media *; clipboard-write" loading="lazy"></iframe>
           </div>
         </div>
@@ -603,6 +622,19 @@
       <input type="file" id="bg-file" accept="image/*">
 
       <input class="s-input" type="url" id="bg-url-input" placeholder="Or paste an image URL…">
+    </div>
+
+    <div class="s-divider"></div>
+
+    <!-- Photo URLs -->
+    <div class="s-section">
+      <label class="s-label">Slideshow photos (one URL per line)</label>
+      <textarea class="s-input" id="photo-urls-input" rows="4"
+        style="resize:none;line-height:1.6;font-size:11px;"
+        placeholder="Paste image URLs here, one per line.&#10;&#10;Google Photos: open a photo → share → copy link, then change the end to =w1200"></textarea>
+      <div style="font-size:10px;color:var(--muted);line-height:1.4;margin-top:2px;">
+        Replaces the demo photos. Saved to this device.
+      </div>
     </div>
 
     <div class="s-row">
@@ -845,8 +877,21 @@
     }, 8000);
   }
 
+  const PHOTO_URLS_KEY = 'custom-photo-urls';
+
+  function getCustomPhotoUrls() {
+    const saved = localStorage.getItem(PHOTO_URLS_KEY);
+    if (!saved) return null;
+    const urls = saved.split('\n').map(u => u.trim()).filter(Boolean);
+    return urls.length ? urls : null;
+  }
+
   // Try iCloud; if it fails or times out, fall back to demo photos
   async function loadPhotos() {
+    // User-supplied URLs take priority over everything
+    const custom = getCustomPhotoUrls();
+    if (custom) { startSlideshow(custom); return; }
+
     // Start demo photos immediately so there's always something to see
     startSlideshow(DEMO_PHOTOS);
 
@@ -933,10 +978,12 @@
   }
 
   // Restore saved state
-  const savedBg  = localStorage.getItem(BG_KEY);
-  const savedKey = localStorage.getItem(AW_KEY);
-  if (savedBg)  { applyBg(savedBg); document.getElementById('bg-url-input').value = savedBg.startsWith('data:') ? '' : savedBg; }
-  if (savedKey) { document.getElementById('aw-key-input').value = savedKey; }
+  const savedBg        = localStorage.getItem(BG_KEY);
+  const savedKey       = localStorage.getItem(AW_KEY);
+  const savedPhotoUrls = localStorage.getItem(PHOTO_URLS_KEY);
+  if (savedBg)        { applyBg(savedBg); document.getElementById('bg-url-input').value = savedBg.startsWith('data:') ? '' : savedBg; }
+  if (savedKey)       { document.getElementById('aw-key-input').value = savedKey; }
+  if (savedPhotoUrls) { document.getElementById('photo-urls-input').value = savedPhotoUrls; }
 
   // Settings panel toggle
   const settingsBtn   = document.getElementById('settings-btn');
@@ -966,7 +1013,7 @@
     const key = document.getElementById('aw-key-input').value.trim();
     if (key) {
       localStorage.setItem(AW_KEY, key);
-      localStorage.removeItem('aw-location-key'); // force re-lookup
+      localStorage.removeItem('aw-location-key');
       fetchWeather();
     } else {
       localStorage.removeItem(AW_KEY);
@@ -974,9 +1021,21 @@
 
     // Background URL (if typed, not uploaded)
     const url = document.getElementById('bg-url-input').value.trim();
-    if (url) {
-      localStorage.setItem(BG_KEY, url);
-      applyBg(url);
+    if (url) { localStorage.setItem(BG_KEY, url); applyBg(url); }
+
+    // Custom photo URLs
+    const photoInput = document.getElementById('photo-urls-input').value.trim();
+    if (photoInput) {
+      localStorage.setItem(PHOTO_URLS_KEY, photoInput);
+      // Restart slideshow with new URLs
+      const inner = document.getElementById('photo-inner');
+      imgEls.forEach(img => img.remove());
+      imgEls = []; photoIndex = 0;
+      const fallback = document.getElementById('photo-fallback');
+      if (fallback) fallback.remove();
+      startSlideshow(photoInput.split('\n').map(u => u.trim()).filter(Boolean));
+    } else {
+      localStorage.removeItem(PHOTO_URLS_KEY);
     }
 
     settingsPanel.classList.remove('open');
