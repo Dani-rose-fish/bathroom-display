@@ -1020,50 +1020,32 @@
     const inner    = document.getElementById('photo-inner');
     const fallback = document.getElementById('photo-fallback');
 
-    // Track how many images have settled (loaded or errored)
-    let settled = 0;
-    let timer   = null;
-
-    function tryAdvance() {
-      // Filter to only successfully loaded images
-      const loaded = imgEls.filter(img => img.complete && img.naturalWidth > 0);
-      if (loaded.length === 0) {
-        // All failed — restore fallback
-        if (fallback && !fallback.parentNode) inner.appendChild(fallback);
-        return;
-      }
-
-      // Remove fallback once we have at least one good image
-      if (fallback && fallback.parentNode) fallback.remove();
-
-      // Rebuild imgEls to only contain loaded images and start rotation
-      imgEls = loaded;
-      imgEls[0].classList.add('visible');
-
-      if (!timer) {
-        timer = setInterval(() => {
-          const visible = imgEls.filter(img => img.naturalWidth > 0);
-          if (visible.length < 2) return;
-          imgEls[photoIndex % imgEls.length].classList.remove('visible');
-          photoIndex = (photoIndex + 1) % imgEls.length;
-          imgEls[photoIndex].classList.add('visible');
-        }, 8000);
-      }
-    }
+    // Remove fallback immediately — gradient bg shows while images load
+    if (fallback && fallback.parentNode) fallback.remove();
 
     imgEls = urls.map(url => {
       const img = document.createElement('img');
       img.className = 'photo-img';
       img.alt = '';
-      img.onload  = () => { settled++; if (settled === urls.length) tryAdvance(); };
-      img.onerror = () => { settled++; img.remove(); if (settled === urls.length) tryAdvance(); };
+      img.onerror = () => {
+        img.remove();
+        imgEls = imgEls.filter(el => el !== img);
+      };
       img.src = url;
       inner.appendChild(img);
       return img;
     });
 
-    // Fallback: if nothing has settled in 12s (e.g. network stall), try with what loaded
-    setTimeout(() => { if (settled < urls.length) tryAdvance(); }, 12000);
+    // Show first image; it fades in via CSS transition once loaded
+    if (imgEls.length > 0) imgEls[0].classList.add('visible');
+
+    setInterval(() => {
+      if (imgEls.length < 2) return;
+      const cur = photoIndex % imgEls.length;
+      imgEls[cur].classList.remove('visible');
+      photoIndex = (photoIndex + 1) % imgEls.length;
+      imgEls[photoIndex].classList.add('visible');
+    }, 8000);
   }
 
   const PHOTO_URLS_KEY = 'custom-photo-urls';
@@ -1075,27 +1057,49 @@
     return urls.length ? urls : null;
   }
 
-  // Try iCloud; if it fails or times out, fall back to demo photos
+  // Try iCloud via multiple CORS proxies; demo photos show while we wait
   async function loadPhotos() {
     // User-supplied URLs take priority over everything
     const custom = getCustomPhotoUrls();
     if (custom) { startSlideshow(custom); return; }
 
-    // Start demo photos immediately so there's always something to see
+    // Demo photos show immediately; replaced by real ones if iCloud succeeds
     startSlideshow(DEMO_PHOTOS);
+
+    // Try each CORS proxy in turn until one works
+    const PROXIES = [
+      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+      url => `https://thingproxy.freeboard.io/fetch/${url}`,
+    ];
+
+    async function tryPost(proxyFn, host, path, body) {
+      const target = `https://${host}/${ICLOUD_TOKEN}/sharedstreams/${path}`;
+      const r = await fetch(proxyFn(target), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(8000),
+      });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }
 
     // Attempt iCloud in background — replaces demo photos if successful
     try {
-      const PROXY = 'https://corsproxy.io/?';
-      const post = (host, path, body) =>
-        fetch(PROXY + encodeURIComponent(`https://${host}/${ICLOUD_TOKEN}/sharedstreams/${path}`), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        }).then(r => r.json());
+      let proxyFn, stream;
+      let host = 'p23-sharedstreams.icloud.com';
 
-      let host   = 'p23-sharedstreams.icloud.com';
-      let stream = await post(host, 'webstream', { streamCtag: null });
+      for (const fn of PROXIES) {
+        try {
+          stream = await tryPost(fn, host, 'webstream', { streamCtag: null });
+          proxyFn = fn;
+          break;
+        } catch(e) { /* try next proxy */ }
+      }
+      if (!proxyFn) { console.warn('All iCloud proxies failed'); return; }
+
+      const post = (h, p, b) => tryPost(proxyFn, h, p, b);
 
       if (stream['X-Apple-MMe-Host']) {
         host   = stream['X-Apple-MMe-Host'].replace(':443','');
