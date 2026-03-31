@@ -127,13 +127,19 @@
     /* ── SPOTIFY ── */
 
     .spotify-wrap {
-      flex: 0 0 310px;   /* fixed height — gives podcasts the remaining space */
+      flex: 0 0 auto;    /* shrink-wraps around tab bar + iframe */
       display: flex;
       flex-direction: column;
       border-radius: var(--radius);
       overflow: hidden;
       background: #121212;
       border: 1px solid rgba(0,0,0,0.4);
+    }
+
+    /* Fix Spotify panels height — flex-basis overrides the inherited flex:1 */
+    .spotify-wrap .pod-panels {
+      flex: 0 0 352px;
+      height: 352px;
     }
 
     /* Tab bar on dark background */
@@ -233,7 +239,7 @@
       position: static;
       display: none;
       width: 100%;
-      height: 700px;   /* tall enough to show artwork + full episode list */
+      height: 480px;   /* artwork + several episodes, no excessive whitespace */
       opacity: 1;
       pointer-events: auto;
       transition: none;
