@@ -7,27 +7,44 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Home Display</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ── DAY PALETTE (Floral White / Lavender / Periwinkle / Wisteria / Pearl Aqua) ── */
     :root {
-      --bg:          #dce6ef;
-      --surface:     rgba(255,255,255,0.5);
-      --accent:      #7fa3be;
-      --accent-lt:   #b8cfe0;
-      --text:        #2a3d52;
-      --muted:       #6b7f94;
-      --border:      rgba(127,163,190,0.28);
+      --bg:          #F7F4EA;
+      --surface:     rgba(222,217,226,0.58);
+      --accent:      #80A1D4;
+      --accent-lt:   #C0B9DD;
+      --accent2:     #75C9C8;
+      --text:        #252338;
+      --muted:       #7c7a9e;
+      --border:      rgba(192,185,221,0.42);
       --radius:      18px;
       --gap:         11px;
-      --blur:        blur(14px);
+      --blur:        blur(16px);
     }
+
+    /* ── NIGHT PALETTE — auto after 9 PM, off at 7 AM ── */
+    body.night {
+      --bg:          #14121e;
+      --surface:     rgba(32,28,50,0.82);
+      --accent:      #7a9fd0;
+      --accent-lt:   #3d4870;
+      --accent2:     #4a9898;
+      --text:        #dddaf0;
+      --muted:       #8a87b0;
+      --border:      rgba(122,159,208,0.18);
+    }
+
+    body.night.has-bg::before { background: rgba(14,12,22,0.55); }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
       width: 100%; height: 100%;
       overflow: hidden;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
       color: var(--text);
       -webkit-font-smoothing: antialiased;
     }
@@ -37,13 +54,14 @@
       background-image: var(--custom-bg);
       background-size: cover;
       background-position: center;
+      transition: background-color 2s ease;
     }
 
     body.has-bg::before {
       content: '';
       position: fixed;
       inset: 0;
-      background: rgba(220,230,239,0.48);
+      background: rgba(247,244,234,0.45);
       z-index: 0;
       pointer-events: none;
     }
@@ -72,17 +90,17 @@
     }
 
     .header-date {
-      font-size: 12px;
-      font-weight: 500;
-      letter-spacing: 0.09em;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--muted);
     }
 
     .header-clock {
-      font-size: 54px;
-      font-weight: 300;
-      letter-spacing: -0.03em;
+      font-size: 56px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
       line-height: 1;
       color: var(--text);
       text-align: center;
@@ -93,8 +111,8 @@
       align-items: center;
       justify-content: flex-end;
       gap: 10px;
-      font-size: 12px;
-      font-weight: 400;
+      font-size: 13px;
+      font-weight: 500;
       letter-spacing: 0.04em;
       color: var(--muted);
     }
@@ -189,7 +207,7 @@
       border-radius: 9px;
       border: none;
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       font-family: inherit;
       cursor: pointer;
       background: transparent;
@@ -252,10 +270,10 @@
       display: block;
     }
 
-    /* ── PHOTOS ── */
+    /* ── PHOTOS (removed) ── */
 
     .photo-card {
-      flex: 1;
+      display: none; flex: 1;
       min-height: 0;
       position: relative;
     }
@@ -294,88 +312,122 @@
     .photo-fallback-icon { font-size: 34px; opacity: 0.7; }
     .photo-fallback-label { font-size: 13px; font-weight: 500; letter-spacing: 0.04em; }
 
-    /* ── WEATHER WIDGET ── */
+    /* ── WEATHER WIDGET — iOS style ── */
 
     .weather-card {
-      flex: 0 0 auto;
-      padding: 16px 20px;
+      flex: 1;
+      min-height: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(160deg, #1c3d7a 0%, #2e6bbf 55%, #4a8fd4 100%);
+      transition: background 1s ease;
+      border: none;
+      position: relative;
+    }
+
+    .wx-inner {
+      position: absolute;
+      inset: 0;
+      padding: 14px 16px 12px;
+      display: flex;
+      gap: 12px;
+      color: #fff;
+    }
+
+    /* Left: location + big temp + condition */
+    .wx-left {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-    }
-
-    .weather-top {
-      display: flex;
-      align-items: flex-start;
       justify-content: space-between;
+      flex: 0 0 auto;
+      min-width: 130px;
     }
 
-    .weather-main {}
+    .wx-location {
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
 
-    .weather-temp-big {
-      font-size: 42px;
+    .wx-temp-big {
+      font-size: 72px;
       font-weight: 300;
-      letter-spacing: -0.02em;
       line-height: 1;
-      color: var(--text);
+      letter-spacing: -0.04em;
     }
 
-    .weather-cond {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 3px;
-      font-weight: 400;
-    }
-
-    .weather-icon-big {
-      font-size: 38px;
-      line-height: 1;
-    }
-
-    .weather-details {
+    .wx-bottom-left {
       display: flex;
-      gap: 0;
-      border-top: 1px solid var(--border);
-      padding-top: 10px;
+      flex-direction: column;
+      gap: 2px;
     }
 
-    .weather-detail {
+    .wx-cond {
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
+    .wx-hl {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.65;
+    }
+
+    /* Divider */
+    .wx-divider {
+      width: 1px;
+      background: rgba(255,255,255,0.2);
+      flex-shrink: 0;
+      margin: 4px 0;
+    }
+
+    /* Right: vertical hourly list */
+    .wx-hourly {
       flex: 1;
       display: flex;
       flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .wx-hourly::-webkit-scrollbar { display: none; }
+
+    .wx-hour {
+      display: flex;
       align-items: center;
-      gap: 3px;
+      gap: 8px;
     }
 
-    .weather-detail + .weather-detail {
-      border-left: 1px solid var(--border);
+    .wx-h-time {
+      font-size: 11px;
+      font-weight: 500;
+      opacity: 0.7;
+      width: 36px;
+      flex-shrink: 0;
     }
 
-    .wd-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent);
+    .wx-h-icon { font-size: 16px; flex-shrink: 0; }
+
+    .wx-h-temp {
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: auto;
     }
 
-    .wd-value {
-      font-size: 14px;
-      font-weight: 400;
-      color: var(--text);
+    body.night .weather-card {
+      background: linear-gradient(160deg, #0e1e3d 0%, #182e5a 55%, #1f4070 100%);
     }
 
     .weather-loading {
       font-size: 13px;
-      color: var(--muted);
+      color: rgba(255,255,255,0.7);
       text-align: center;
       padding: 8px 0;
-    }
-
-    .weather-key-note {
-      font-size: 11px;
-      color: var(--accent);
-      text-align: center;
     }
 
     /* ── AI CHAT ── */
@@ -676,6 +728,18 @@
           </div>
         </div>
 
+        <!-- Weather Widget -->
+        <div class="card weather-card" id="weather-card">
+          <div id="weather-content" class="wx-inner">
+            <div class="weather-loading">Loading weather…</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="col">
+
         <!-- Podcasts -->
         <div class="card podcasts-card">
           <div class="pod-tabs" id="podcast-tabs">
@@ -693,30 +757,6 @@
             <iframe class="pod-player podcast-player"
               src="https://embed.podcasts.apple.com/us/podcast/70-years-70-muppets/id1763852606?theme=light"
               allow="autoplay *; encrypted-media *; clipboard-write" loading="lazy"></iframe>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- RIGHT COLUMN -->
-      <div class="col">
-
-        <!-- Photos -->
-        <div class="card photo-card">
-          <div class="photo-inner" id="photo-inner">
-            <a class="photo-fallback" id="photo-fallback"
-               href="https://www.icloud.com/sharedalbum/#B2LJtdOXmdFeXv"
-               target="_blank">
-              <div class="photo-fallback-icon">🌿</div>
-              <div class="photo-fallback-label">View Shared Album</div>
-            </a>
-          </div>
-        </div>
-
-        <!-- Weather Widget -->
-        <div class="card weather-card" id="weather-card">
-          <div id="weather-content">
-            <div class="weather-loading">Loading weather…</div>
           </div>
         </div>
 
@@ -744,42 +784,14 @@
   <div class="settings-panel" id="settings-panel">
     <div class="s-title">Display Settings</div>
 
-    <!-- AccuWeather -->
-    <div class="s-section">
-      <label class="s-label" for="aw-key-input">AccuWeather API Key</label>
-      <input class="s-input" type="text" id="aw-key-input"
-             placeholder="Paste your free API key…">
-      <div style="font-size:10px;color:var(--muted);line-height:1.4;">
-        Get a free key at <strong>developer.accuweather.com</strong>
-        (free tier · 50 calls/day). Leave blank to use Open-Meteo.
-      </div>
-    </div>
-
-    <div class="s-divider"></div>
-
     <!-- Background -->
     <div class="s-section">
       <label class="s-label">Background</label>
-
       <label class="s-file-label" for="bg-file">
         <span>📁</span> Upload image from device
       </label>
       <input type="file" id="bg-file" accept="image/*">
-
       <input class="s-input" type="url" id="bg-url-input" placeholder="Or paste an image URL…">
-    </div>
-
-    <div class="s-divider"></div>
-
-    <!-- Photo URLs -->
-    <div class="s-section">
-      <label class="s-label">Slideshow photos (one URL per line)</label>
-      <textarea class="s-input" id="photo-urls-input" rows="4"
-        style="resize:none;line-height:1.6;font-size:11px;"
-        placeholder="Paste direct image URLs here, one per line.&#10;&#10;Works: links ending in .jpg/.png/.webp, or Imgur/GitHub raw URLs.&#10;&#10;Google Photos: open a photo → ⋮ menu → Download, then upload to Imgur and paste that link.&#10;&#10;iCloud: if on iPad/Safari, the shared album loads automatically."></textarea>
-      <div style="font-size:10px;color:var(--muted);line-height:1.4;margin-top:2px;">
-        URLs must be direct image links (not album pages). Saved to this device.
-      </div>
     </div>
 
     <div class="s-divider"></div>
@@ -823,8 +835,15 @@
   tick();
   setInterval(tick, 1000);
 
+  // ── NIGHT MODE — auto 9 PM → 7 AM ────────────────────────────
+  function updateNightMode() {
+    const h = new Date().getHours();
+    document.body.classList.toggle('night', h >= 21 || h < 7);
+  }
+  updateNightMode();
+  setInterval(updateNightMode, 60 * 1000);
+
   // ── WEATHER ───────────────────────────────────────────────────
-  // WMO codes (Open-Meteo fallback)
   const WMO = {
     0:['☀️','Clear'], 1:['🌤','Mostly Clear'], 2:['⛅','Partly Cloudy'], 3:['☁️','Overcast'],
     45:['🌫','Foggy'], 48:['🌫','Icy Fog'],
@@ -835,127 +854,72 @@
     95:['⛈','Thunderstorm'], 96:['⛈','Thunderstorm'], 99:['⛈','Thunderstorm'],
   };
 
-  // AccuWeather icon number → emoji
-  const AW_ICON = {
-    1:'☀️',2:'☀️',3:'🌤',4:'🌤',5:'🌤',6:'☁️',7:'☁️',8:'☁️',
-    11:'🌫',12:'🌦',13:'🌦',14:'🌦',15:'⛈',16:'⛈',17:'⛈',
-    18:'🌧',19:'🌦',20:'🌦',21:'🌦',22:'❄️',23:'🌨',24:'🧊',
-    25:'🌧',26:'🌧',29:'🌨',30:'🥵',31:'🥶',32:'💨',33:'🌙',
-    34:'🌙',35:'⛅',36:'⛅',37:'🌫',38:'☁️',39:'🌦',40:'🌦',
-    41:'⛈',42:'⛈',43:'❄️',44:'❄️',
-  };
+  function fmtHour(isoStr) {
+    const h = new Date(isoStr).getHours();
+    return h === 0 ? '12AM' : h < 12 ? `${h}AM` : h === 12 ? '12PM' : `${h-12}PM`;
+  }
 
-  function renderWeather({ icon, temp, condition, feelsLike, humidity, wind, source }) {
+  function renderWeather(d) {
+    const cur = d.current;
+    const [icon, cond] = WMO[cur.weathercode] ?? ['🌡','—'];
+    const temp   = Math.round(cur.temperature_2m);
+    const hi     = Math.round(d.daily.temperature_2m_max[0]);
+    const lo     = Math.round(d.daily.temperature_2m_min[0]);
+
+    // Build next 6 hourly slots starting from current hour
+    const now    = new Date();
+    const curHr  = now.getHours();
+    const times  = d.hourly.time;
+    const temps  = d.hourly.temperature_2m;
+    const codes  = d.hourly.weathercode;
+    const start  = times.findIndex(t => new Date(t).getHours() >= curHr);
+    const slots  = [];
+    for (let i = start; i < start + 6 && i < times.length; i++) {
+      const [hIcon] = WMO[codes[i]] ?? ['🌡'];
+      slots.push({ time: fmtHour(times[i]), icon: hIcon, temp: Math.round(temps[i]) });
+    }
+
+    const hourlyHTML = slots.map(s => `
+      <div class="wx-hour">
+        <span class="wx-h-time">${s.time}</span>
+        <span class="wx-h-icon">${s.icon}</span>
+        <span class="wx-h-temp">${s.temp}°</span>
+      </div>`).join('');
+
     document.getElementById('weather-content').innerHTML = `
-      <div class="weather-top">
-        <div class="weather-main">
-          <div class="weather-temp-big">${temp}°F</div>
-          <div class="weather-cond">${condition}</div>
-        </div>
-        <div class="weather-icon-big">${icon}</div>
-      </div>
-      <div class="weather-details">
-        <div class="weather-detail">
-          <span class="wd-label">Feels</span>
-          <span class="wd-value">${feelsLike}°</span>
-        </div>
-        <div class="weather-detail">
-          <span class="wd-label">Humidity</span>
-          <span class="wd-value">${humidity}%</span>
-        </div>
-        <div class="weather-detail">
-          <span class="wd-label">Wind</span>
-          <span class="wd-value">${wind}</span>
+      <div class="wx-left">
+        <div class="wx-location">Brooklyn</div>
+        <div class="wx-temp-big">${temp}°</div>
+        <div class="wx-bottom-left">
+          <div class="wx-cond">${icon} ${cond}</div>
+          <div class="wx-hl">H:${hi}° L:${lo}°</div>
         </div>
       </div>
+      <div class="wx-divider"></div>
+      <div class="wx-hourly">${hourlyHTML}</div>
     `;
   }
 
-  async function fetchAccuWeather(apiKey) {
-    // 1. Get location key (cached)
-    let locationKey = localStorage.getItem('aw-location-key');
-    if (!locationKey) {
-      const locRes = await fetch(
-        `https://dataservice.accuweather.com/locations/v1/cities/search` +
-        `?q=Brooklyn%2C+NY&apikey=${apiKey}`
-      );
-      const locData = await locRes.json();
-      if (!locData?.[0]?.Key) throw new Error('Location not found');
-      locationKey = locData[0].Key;
-      localStorage.setItem('aw-location-key', locationKey);
-    }
-
-    // 2. Current conditions
-    const res = await fetch(
-      `https://dataservice.accuweather.com/currentconditions/v1/${locationKey}` +
-      `?apikey=${apiKey}&details=true`
-    );
-    const data = await res.json();
-    const c = data?.[0];
-    if (!c) throw new Error('No conditions returned');
-
-    renderWeather({
-      icon:      AW_ICON[c.WeatherIcon] ?? '🌡',
-      temp:      Math.round(c.Temperature.Imperial.Value),
-      condition: c.WeatherText,
-      feelsLike: Math.round(c.RealFeelTemperature.Imperial.Value),
-      humidity:  c.RelativeHumidity,
-      wind:      `${Math.round(c.Wind.Speed.Imperial.Value)} mph`,
-      source:    'accuweather',
-    });
-  }
-
-  async function fetchOpenMeteo() {
-    const res = await fetch(
-      'https://api.open-meteo.com/v1/forecast' +
-      '?latitude=40.6501&longitude=-73.9496' +
-      '&current=temperature_2m,weathercode,apparent_temperature,relativehumidity_2m,windspeed_10m' +
-      '&temperature_unit=fahrenheit&timezone=America%2FNew_York'
-    );
-    const d = await res.json();
-    const c = d.current;
-    const [icon, condition] = WMO[c.weathercode] ?? ['🌡','—'];
-
-    renderWeather({
-      icon,
-      temp:      Math.round(c.temperature_2m),
-      condition,
-      feelsLike: Math.round(c.apparent_temperature),
-      humidity:  Math.round(c.relativehumidity_2m),
-      wind:      `${Math.round(c.windspeed_10m)} mph`,
-      source:    'open-meteo',
-    });
-  }
-
   async function fetchWeather() {
-    const apiKey = localStorage.getItem('aw-api-key');
     try {
-      if (apiKey) {
-        await fetchAccuWeather(apiKey);
-      } else {
-        await fetchOpenMeteo();
-        // Nudge to add AccuWeather key
-        const note = document.createElement('div');
-        note.className = 'weather-key-note';
-        note.textContent = 'Add AccuWeather key in ⚙ settings for enhanced data';
-        note.style.marginTop = '8px';
-        document.getElementById('weather-content').appendChild(note);
-      }
+      const res = await fetch(
+        'https://api.open-meteo.com/v1/forecast' +
+        '?latitude=40.6501&longitude=-73.9496' +
+        '&current=temperature_2m,weathercode' +
+        '&hourly=temperature_2m,weathercode' +
+        '&daily=temperature_2m_max,temperature_2m_min' +
+        '&temperature_unit=fahrenheit&timezone=America%2FNew_York&forecast_days=1'
+      );
+      const data = await res.json();
+      renderWeather(data);
     } catch(e) {
-      console.warn('Weather error:', e);
-      try { await fetchOpenMeteo(); } catch(e2) {
-        document.getElementById('weather-content').innerHTML =
-          '<div class="weather-loading">Weather unavailable</div>';
-      }
+      document.getElementById('weather-content').innerHTML =
+        '<div class="weather-loading">Weather unavailable</div>';
     }
   }
 
   fetchWeather();
-  // Refresh: 30 min for AccuWeather (conserves free tier), 10 min for Open-Meteo
-  setInterval(() => {
-    const key = localStorage.getItem('aw-api-key');
-    setInterval(fetchWeather, key ? 30*60*1000 : 10*60*1000);
-  }, 100);
+  setInterval(fetchWeather, 10 * 60 * 1000);
 
   // ── TAB SWITCHER (shared logic) ──────────────────────────────
   function initTabs(tabsId, panelsId) {
@@ -1000,165 +964,9 @@
     }
   })();
 
-  // ── PHOTOS ────────────────────────────────────────────────────
-  // Demo photos (Picsum) shown while iCloud is attempted.
-  // On Safari/iPad the iCloud API may succeed; these serve as instant fallback.
-  const DEMO_PHOTOS = [
-    'https://picsum.photos/seed/bathroom1/1200/800',
-    'https://picsum.photos/seed/bathroom2/1200/800',
-    'https://picsum.photos/seed/bathroom3/1200/800',
-    'https://picsum.photos/seed/bathroom4/1200/800',
-    'https://picsum.photos/seed/bathroom5/1200/800',
-  ];
-
-  const ICLOUD_TOKEN = 'B2LJtdOXmdFeXv';
-  let photoUrls  = [];
-  let photoIndex = 0;
-  let imgEls     = [];
-
-  function startSlideshow(urls) {
-    const inner    = document.getElementById('photo-inner');
-    const fallback = document.getElementById('photo-fallback');
-
-    // Remove fallback immediately — gradient bg shows while images load
-    if (fallback && fallback.parentNode) fallback.remove();
-
-    imgEls = urls.map(url => {
-      const img = document.createElement('img');
-      img.className = 'photo-img';
-      img.alt = '';
-      img.onerror = () => {
-        img.remove();
-        imgEls = imgEls.filter(el => el !== img);
-      };
-      img.src = url;
-      inner.appendChild(img);
-      return img;
-    });
-
-    // Show first image; it fades in via CSS transition once loaded
-    if (imgEls.length > 0) imgEls[0].classList.add('visible');
-
-    setInterval(() => {
-      if (imgEls.length < 2) return;
-      const cur = photoIndex % imgEls.length;
-      imgEls[cur].classList.remove('visible');
-      photoIndex = (photoIndex + 1) % imgEls.length;
-      imgEls[photoIndex].classList.add('visible');
-    }, 8000);
-  }
-
-  const PHOTO_URLS_KEY = 'custom-photo-urls';
-
-  function getCustomPhotoUrls() {
-    const saved = localStorage.getItem(PHOTO_URLS_KEY);
-    if (!saved) return null;
-    const urls = saved.split('\n').map(u => u.trim()).filter(Boolean);
-    return urls.length ? urls : null;
-  }
-
-  // Try iCloud via multiple CORS proxies; demo photos show while we wait
-  async function loadPhotos() {
-    // User-supplied URLs take priority over everything
-    const custom = getCustomPhotoUrls();
-    if (custom) { startSlideshow(custom); return; }
-
-    // Demo photos show immediately; replaced by real ones if iCloud succeeds
-    startSlideshow(DEMO_PHOTOS);
-
-    // Try each CORS proxy in turn until one works
-    const PROXIES = [
-      url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-      url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-      url => `https://thingproxy.freeboard.io/fetch/${url}`,
-    ];
-
-    async function tryPost(proxyFn, host, path, body) {
-      const target = `https://${host}/${ICLOUD_TOKEN}/sharedstreams/${path}`;
-      const r = await fetch(proxyFn(target), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(8000),
-      });
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      return r.json();
-    }
-
-    // Attempt iCloud in background — replaces demo photos if successful
-    try {
-      let proxyFn, stream;
-      let host = 'p23-sharedstreams.icloud.com';
-
-      for (const fn of PROXIES) {
-        try {
-          stream = await tryPost(fn, host, 'webstream', { streamCtag: null });
-          proxyFn = fn;
-          break;
-        } catch(e) { /* try next proxy */ }
-      }
-      if (!proxyFn) { console.warn('All iCloud proxies failed'); return; }
-
-      const post = (h, p, b) => tryPost(proxyFn, h, p, b);
-
-      if (stream['X-Apple-MMe-Host']) {
-        host   = stream['X-Apple-MMe-Host'].replace(':443','');
-        stream = await post(host, 'webstream', { streamCtag: null });
-      }
-
-      const photos = stream.photos;
-      if (!Array.isArray(photos) || photos.length === 0) return;
-
-      const guids  = photos.slice(0, 20).map(p => p.photoGuid);
-      const assets = await post(host, 'webasseturls', { photoGuids: guids });
-
-      const urls = [];
-      for (const photo of photos.slice(0, 20)) {
-        const guid = photo.photoGuid;
-        const item = assets.items?.[guid];
-        if (!item?.url_location || !item?.url_expiry) continue;
-
-        const derivs = Object.values(photo.derivatives ?? {});
-        derivs.sort((a,b) => parseInt(b.fileSize||0) - parseInt(a.fileSize||0));
-        const best = derivs.find(d => parseInt(d.fileSize||0) > 50_000) ?? derivs[0];
-        if (!best?.checksum) continue;
-
-        urls.push(
-          `https://${item.url_location}/${ICLOUD_TOKEN}/sharedstreams/webasset` +
-          `?photoGuid=${encodeURIComponent(guid)}` +
-          `&derivativeChecksum=${encodeURIComponent(best.checksum)}` +
-          `&downloadToken=${encodeURIComponent(item.url_expiry)}`
-        );
-      }
-
-      if (urls.length > 0) {
-        // Replace demo images with real iCloud photos
-        const inner = document.getElementById('photo-inner');
-        imgEls.forEach(img => img.remove());
-        imgEls     = [];
-        photoIndex = 0;
-        photoUrls  = urls;
-        urls.forEach(url => {
-          const img = document.createElement('img');
-          img.className = 'photo-img';
-          img.src = url;
-          img.alt = '';
-          inner.appendChild(img);
-          imgEls.push(img);
-        });
-        imgEls[0].classList.add('visible');
-      }
-    } catch(e) {
-      console.warn('iCloud photos unavailable, using demo photos:', e);
-      // Demo photos continue running — no action needed
-    }
-  }
-
-  loadPhotos();
 
   // ── BACKGROUND SETTINGS ───────────────────────────────────────
   const BG_KEY = 'bathroom-bg';
-  const AW_KEY = 'aw-api-key';
 
   function applyBg(dataUrlOrSrc) {
     if (dataUrlOrSrc) {
@@ -1175,13 +983,9 @@
   const OPENAI_KEY = 'openai-api-key';
 
   const savedBg        = localStorage.getItem(BG_KEY);
-  const savedKey       = localStorage.getItem(AW_KEY);
-  const savedPhotoUrls = localStorage.getItem(PHOTO_URLS_KEY);
   const savedClaudeKey = localStorage.getItem(CLAUDE_KEY);
   const savedOpenaiKey = localStorage.getItem(OPENAI_KEY);
   if (savedBg)        { applyBg(savedBg); document.getElementById('bg-url-input').value = savedBg.startsWith('data:') ? '' : savedBg; }
-  if (savedKey)       { document.getElementById('aw-key-input').value = savedKey; }
-  if (savedPhotoUrls) { document.getElementById('photo-urls-input').value = savedPhotoUrls; }
   if (savedClaudeKey) { document.getElementById('claude-key-input').value = savedClaudeKey; }
   if (savedOpenaiKey) { document.getElementById('openai-key-input').value = savedOpenaiKey; }
   if (savedClaudeKey || savedOpenaiKey) {
@@ -1212,16 +1016,6 @@
 
   // Save button
   document.getElementById('settings-save').addEventListener('click', () => {
-    // AccuWeather key
-    const key = document.getElementById('aw-key-input').value.trim();
-    if (key) {
-      localStorage.setItem(AW_KEY, key);
-      localStorage.removeItem('aw-location-key');
-      fetchWeather();
-    } else {
-      localStorage.removeItem(AW_KEY);
-    }
-
     // Background URL (if typed, not uploaded)
     const url = document.getElementById('bg-url-input').value.trim();
     if (url) { localStorage.setItem(BG_KEY, url); applyBg(url); }
@@ -1232,21 +1026,6 @@
     if (ck) { localStorage.setItem(CLAUDE_KEY, ck); } else { localStorage.removeItem(CLAUDE_KEY); }
     if (ok) { localStorage.setItem(OPENAI_KEY, ok); } else { localStorage.removeItem(OPENAI_KEY); }
     if (ck || ok) document.getElementById('chat-placeholder').textContent = 'Ask me anything…';
-
-    // Custom photo URLs
-    const photoInput = document.getElementById('photo-urls-input').value.trim();
-    if (photoInput) {
-      localStorage.setItem(PHOTO_URLS_KEY, photoInput);
-      // Restart slideshow with new URLs
-      const inner = document.getElementById('photo-inner');
-      imgEls.forEach(img => img.remove());
-      imgEls = []; photoIndex = 0;
-      const fallback = document.getElementById('photo-fallback');
-      if (fallback) fallback.remove();
-      startSlideshow(photoInput.split('\n').map(u => u.trim()).filter(Boolean));
-    } else {
-      localStorage.removeItem(PHOTO_URLS_KEY);
-    }
 
     settingsPanel.classList.remove('open');
   });
