@@ -774,9 +774,9 @@
       <label class="s-label">Slideshow photos (one URL per line)</label>
       <textarea class="s-input" id="photo-urls-input" rows="4"
         style="resize:none;line-height:1.6;font-size:11px;"
-        placeholder="Paste image URLs here, one per line.&#10;&#10;Google Photos: open a photo → share → copy link, then change the end to =w1200"></textarea>
+        placeholder="Paste direct image URLs here, one per line.&#10;&#10;Works: links ending in .jpg/.png/.webp, or Imgur/GitHub raw URLs.&#10;&#10;Google Photos: open a photo → ⋮ menu → Download, then upload to Imgur and paste that link.&#10;&#10;iCloud: if on iPad/Safari, the shared album loads automatically."></textarea>
       <div style="font-size:10px;color:var(--muted);line-height:1.4;margin-top:2px;">
-        Replaces the demo photos. Saved to this device.
+        URLs must be direct image links (not album pages). Saved to this device.
       </div>
     </div>
 
@@ -1017,23 +1017,51 @@
   function startSlideshow(urls) {
     const inner    = document.getElementById('photo-inner');
     const fallback = document.getElementById('photo-fallback');
-    if (fallback) fallback.remove();
+
+    // Track how many images have settled (loaded or errored)
+    let settled = 0;
+    let timer   = null;
+
+    function tryAdvance() {
+      // Filter to only successfully loaded images
+      const loaded = imgEls.filter(img => img.complete && img.naturalWidth > 0);
+      if (loaded.length === 0) {
+        // All failed — restore fallback
+        if (fallback && !fallback.parentNode) inner.appendChild(fallback);
+        return;
+      }
+
+      // Remove fallback once we have at least one good image
+      if (fallback && fallback.parentNode) fallback.remove();
+
+      // Rebuild imgEls to only contain loaded images and start rotation
+      imgEls = loaded;
+      imgEls[0].classList.add('visible');
+
+      if (!timer) {
+        timer = setInterval(() => {
+          const visible = imgEls.filter(img => img.naturalWidth > 0);
+          if (visible.length < 2) return;
+          imgEls[photoIndex % imgEls.length].classList.remove('visible');
+          photoIndex = (photoIndex + 1) % imgEls.length;
+          imgEls[photoIndex].classList.add('visible');
+        }, 8000);
+      }
+    }
 
     imgEls = urls.map(url => {
       const img = document.createElement('img');
       img.className = 'photo-img';
-      img.src = url;
       img.alt = '';
+      img.onload  = () => { settled++; if (settled === urls.length) tryAdvance(); };
+      img.onerror = () => { settled++; img.remove(); if (settled === urls.length) tryAdvance(); };
+      img.src = url;
       inner.appendChild(img);
       return img;
     });
-    imgEls[0].classList.add('visible');
 
-    setInterval(() => {
-      imgEls[photoIndex].classList.remove('visible');
-      photoIndex = (photoIndex + 1) % imgEls.length;
-      imgEls[photoIndex].classList.add('visible');
-    }, 8000);
+    // Fallback: if nothing has settled in 12s (e.g. network stall), try with what loaded
+    setTimeout(() => { if (settled < urls.length) tryAdvance(); }, 12000);
   }
 
   const PHOTO_URLS_KEY = 'custom-photo-urls';
