@@ -111,24 +111,43 @@
     .sp-login-btn { padding: 13px 32px; border-radius: 30px; border: none; background: #1DB954; color: #000; font-size: 14px; font-weight: 700; font-family: inherit; cursor: pointer; letter-spacing: 0.02em; -webkit-tap-highlight-color: transparent; transition: opacity 0.15s; }
     .sp-login-btn:active { opacity: 0.8; }
 
-    .sp-player { flex: 1; min-height: 0; display: none; flex-direction: column; align-items: center; padding: 16px 20px 18px; gap: 10px; }
+    /* Player: track list + now-playing bar */
+    .sp-player { flex: 1; min-height: 0; display: none; flex-direction: column; }
 
-    .sp-art-wrap { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; }
-    .sp-art { max-width: 100%; max-height: 100%; object-fit: cover; border-radius: 10px; background: #1a1a1a; display: block; }
+    /* Scrollable track list */
+    .sp-tracklist { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding: 6px 0; }
+    .sp-tracklist::-webkit-scrollbar { display: none; }
 
-    .sp-info { width: 100%; text-align: center; flex-shrink: 0; }
-    .sp-track { font-size: 15px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .sp-artist { font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sp-track-item { display: flex; align-items: center; gap: 10px; padding: 7px 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background 0.12s; }
+    .sp-track-item:active { background: rgba(255,255,255,0.06); }
+    .sp-track-item.playing { background: rgba(128,161,212,0.12); }
 
-    .sp-progress-wrap { width: 100%; flex-shrink: 0; }
-    .sp-progress-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.15); border-radius: 2px; overflow: hidden; cursor: pointer; }
-    .sp-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.5s linear; }
-    .sp-times { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10px; color: rgba(255,255,255,0.35); }
+    .sp-ti-num { font-size: 11px; color: rgba(255,255,255,0.3); width: 18px; text-align: right; flex-shrink: 0; }
+    .sp-track-item.playing .sp-ti-num { color: var(--accent); }
 
-    .sp-controls { display: flex; align-items: center; gap: 28px; flex-shrink: 0; }
-    .sp-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 24px; cursor: pointer; padding: 4px; -webkit-tap-highlight-color: transparent; transition: color 0.15s, transform 0.1s; line-height: 1; }
+    .sp-ti-info { flex: 1; min-width: 0; }
+    .sp-ti-name { font-size: 13px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sp-track-item.playing .sp-ti-name { color: var(--accent); }
+    .sp-ti-artist { font-size: 11px; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+
+    .sp-ti-dur { font-size: 11px; color: rgba(255,255,255,0.3); flex-shrink: 0; }
+
+    /* Now-playing bar */
+    .sp-nowplaying { flex-shrink: 0; border-top: 1px solid rgba(255,255,255,0.08); padding: 10px 14px 0; display: flex; align-items: center; gap: 10px; }
+    .sp-np-art { width: 36px; height: 36px; border-radius: 5px; object-fit: cover; background: #1a1a1a; flex-shrink: 0; }
+    .sp-np-info { flex: 1; min-width: 0; }
+    .sp-np-track  { font-size: 12px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sp-np-artist { font-size: 11px; color: rgba(255,255,255,0.45); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sp-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+    .sp-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; padding: 6px; -webkit-tap-highlight-color: transparent; transition: color 0.15s, transform 0.1s; line-height: 1; }
     .sp-btn:active { transform: scale(0.88); }
-    .sp-btn-play { font-size: 42px; color: #fff; }
+    .sp-btn-play { font-size: 28px; color: #fff; }
+
+    /* Progress bar below now-playing */
+    .sp-progress-wrap { flex-shrink: 0; padding: 6px 14px 10px; }
+    .sp-progress-bar { width: 100%; height: 3px; background: rgba(255,255,255,0.12); border-radius: 2px; overflow: hidden; cursor: pointer; }
+    .sp-progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.5s linear; }
+    .sp-times { display: flex; justify-content: space-between; margin-top: 3px; font-size: 10px; color: rgba(255,255,255,0.3); }
 
     /* ── SETTINGS ── */
     .settings-trigger { position: relative; flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.35); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 1px solid var(--border); color: var(--muted); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 200; opacity: 0.45; transition: opacity 0.2s; -webkit-tap-highlight-color: transparent; }
@@ -220,13 +239,26 @@
         </div>
 
         <div class="sp-player" id="sp-player">
-          <div class="sp-art-wrap">
-            <img class="sp-art" id="sp-art" src="" alt="">
+          <!-- Scrollable track list -->
+          <div class="sp-tracklist" id="sp-tracklist">
+            <div style="padding:16px;font-size:12px;color:rgba(255,255,255,0.3)">Loading tracks…</div>
           </div>
-          <div class="sp-info">
-            <div class="sp-track" id="sp-track">—</div>
-            <div class="sp-artist" id="sp-artist">—</div>
+
+          <!-- Now-playing bar -->
+          <div class="sp-nowplaying">
+            <img class="sp-np-art" id="sp-art" src="" alt="">
+            <div class="sp-np-info">
+              <div class="sp-np-track" id="sp-track">—</div>
+              <div class="sp-np-artist" id="sp-artist">—</div>
+            </div>
+            <div class="sp-controls">
+              <button class="sp-btn" id="sp-prev">⏮</button>
+              <button class="sp-btn sp-btn-play" id="sp-play">▶</button>
+              <button class="sp-btn" id="sp-next">⏭</button>
+            </div>
           </div>
+
+          <!-- Progress -->
           <div class="sp-progress-wrap">
             <div class="sp-progress-bar" id="sp-progress-bar">
               <div class="sp-progress-fill" id="sp-progress-fill"></div>
@@ -235,11 +267,6 @@
               <span id="sp-pos">0:00</span>
               <span id="sp-dur">0:00</span>
             </div>
-          </div>
-          <div class="sp-controls">
-            <button class="sp-btn" id="sp-prev">⏮</button>
-            <button class="sp-btn sp-btn-play" id="sp-play">▶</button>
-            <button class="sp-btn" id="sp-next">⏭</button>
           </div>
         </div>
 
@@ -348,7 +375,7 @@ const SP_SCOPES     = 'streaming user-read-email user-read-private user-modify-p
 const SP_PLAYLISTS  = ['50hFiVZysrkzXjUq1J67JZ','0vPhkZm5Rw9pBNJJqBy6DL','7andkYPK1ycMjXk6AUOTaJ','1kqpsHewuB8XXWPoXnrqoJ'];
 
 let spPlayer=null, spDeviceId=null, spCurrentMs=0, spDurationMs=0, spPlaying=false, spProgressInt=null;
-let spActivePlaylist = SP_PLAYLISTS[0];
+let spActivePlaylist=SP_PLAYLISTS[0], spCurrentTrackUri=null, spPlaylistTracks=[];
 
 function rndStr(len) {
   const c='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -417,6 +444,37 @@ function updatePlayerState(state) {
   document.getElementById('sp-pos').textContent=fmtMs(spCurrentMs);
   document.getElementById('sp-dur').textContent=fmtMs(spDurationMs);
   clearInterval(spProgressInt); if(spPlaying) spProgressInt=setInterval(tickProgress,500);
+  // Highlight current track in list
+  if(track.uri !== spCurrentTrackUri) {
+    spCurrentTrackUri=track.uri;
+    document.querySelectorAll('.sp-track-item').forEach(el=>{
+      el.classList.toggle('playing', el.dataset.uri===track.uri);
+    });
+    // Scroll playing track into view
+    const playing=document.querySelector('.sp-track-item.playing');
+    if(playing) playing.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+}
+
+async function fetchPlaylistTracks(playlistId) {
+  document.getElementById('sp-tracklist').innerHTML='<div style="padding:16px;font-size:12px;color:rgba(255,255,255,0.3)">Loading…</div>';
+  const data=await spApi('GET',`/playlists/${playlistId}/tracks?limit=50&fields=items(track(id,name,uri,duration_ms,artists(name)))`);
+  if(!data?.items) return;
+  spPlaylistTracks=data.items.map(i=>i.track).filter(Boolean);
+  document.getElementById('sp-tracklist').innerHTML=spPlaylistTracks.map((t,i)=>`
+    <div class="sp-track-item${t.uri===spCurrentTrackUri?' playing':''}" data-uri="${t.uri}" data-idx="${i}">
+      <span class="sp-ti-num">${i+1}</span>
+      <div class="sp-ti-info">
+        <div class="sp-ti-name">${t.name}</div>
+        <div class="sp-ti-artist">${t.artists?.map(a=>a.name).join(', ')??''}</div>
+      </div>
+      <span class="sp-ti-dur">${fmtMs(t.duration_ms)}</span>
+    </div>`).join('');
+  document.querySelectorAll('.sp-track-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      spApi('PUT','/me/player/play',{context_uri:`spotify:playlist:${playlistId}`,offset:{uri:el.dataset.uri}});
+    });
+  });
 }
 
 function initSDK() {
@@ -429,6 +487,7 @@ function initSDK() {
     spPlayer.addListener('ready',({device_id})=>{
       spDeviceId=device_id; showSpPlayer();
       spApi('PUT','/me/player',{device_ids:[device_id],play:false});
+      fetchPlaylistTracks(spActivePlaylist);
       loadPlaylist(spActivePlaylist);
     });
     spPlayer.addListener('not_ready',()=>{spDeviceId=null;});
@@ -445,6 +504,7 @@ function initSDK() {
 }
 
 async function loadPlaylist(id) {
+  fetchPlaylistTracks(id);
   if(!spDeviceId) return;
   await spApi('PUT','/me/player/play',{context_uri:`spotify:playlist:${id}`});
 }
