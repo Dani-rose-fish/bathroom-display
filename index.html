@@ -486,9 +486,7 @@ function initSDK() {
     });
     spPlayer.addListener('ready',({device_id})=>{
       spDeviceId=device_id; showSpPlayer();
-      spApi('PUT','/me/player',{device_ids:[device_id],play:false});
       fetchPlaylistTracks(spActivePlaylist);
-      loadPlaylist(spActivePlaylist);
     });
     spPlayer.addListener('not_ready',()=>{spDeviceId=null;});
     spPlayer.addListener('player_state_changed',updatePlayerState);
